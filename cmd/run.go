@@ -69,7 +69,7 @@ func draw() {
 	fpsText.Draw(window, pixel.IM)
 
 	worldText.Clear()
-	worldText.WriteString(w.String())
+	worldText.WriteString(worldStatus)
 	worldText.Draw(window, pixel.IM)
 }
 
@@ -86,14 +86,17 @@ func run() {
 
 	window.Clear(colornames.Skyblue)
 
-	wc := world.WorldConfig{
-		Name: "evolve0",
-	}
+	objects := []world.Object{}
+	objects = append(objects, world.NewObjectSimple())
+
 	var err error
-	w, err = world.NewWorld(wc)
+	w, err = world.NewWorld(world.DefaultConfig, objects)
 	if err != nil {
 		log.Fatalf("initializing world: %v", err)
 	}
+	doneCh := make(chan bool)
+	statusCh := make(chan string, 1)
+	go w.Run(statusCh, doneCh)
 
 	last := time.Now()
 	start := time.Now()
@@ -104,6 +107,13 @@ func run() {
 		last = time.Now()
 
 		fps = float64(frames) / last.Sub(start).Seconds()
+
+		// get latest statusCh from the world
+		select {
+		case s := <-statusCh:
+			worldStatus = s
+		default:
+		}
 
 		// dt is passed to the update() function (3) which can then interpolate if the frames don't have a consistent duration.
 		// https://gafferongames.com/post/fix_your_timestep/
@@ -119,4 +129,6 @@ func run() {
 			<-frameTick.C
 		}
 	}
+
+	doneCh <- true
 }

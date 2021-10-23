@@ -29,5 +29,6 @@ var (
 	worldText *text.Text
 
 	// the world itself
-	w *world.World
+	w           *world.World
+	worldStatus string
 )

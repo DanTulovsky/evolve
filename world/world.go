@@ -1,4 +1,4 @@
-// world defines the entire world
+// Package world defines the entire world
 package world
 
 import (
@@ -8,14 +8,14 @@ import (
 	"time"
 )
 
-type WorldConfig struct {
+type Config struct {
 	Name         string
 	TickInterval time.Duration
 }
 
-func (wc WorldConfig) String() string {
+func (wc Config) String() string {
 	var b = new(strings.Builder)
-	fmt.Fprintln(b, "WorldConfig:")
+	fmt.Fprintln(b, "Config:")
 	fmt.Fprintf(b, "  Name: %v\n", wc.Name)
 	fmt.Fprintf(b, "  TickInterval: %v\n", wc.TickInterval)
 
@@ -25,13 +25,13 @@ func (wc WorldConfig) String() string {
 // World is our world
 type World struct {
 	name    string
-	config  WorldConfig
+	config  Config
 	objects []Object
 	age     int
 }
 
 // NewWorld creates a new world with the provided config and initial objects
-func NewWorld(wc WorldConfig, objects []Object) (*World, error) {
+func NewWorld(wc Config, objects []Object) (*World, error) {
 	log.Println("Initializing world...")
 	log.Println(wc)
 	return &World{

@@ -86,7 +86,7 @@ func run() {
 
 	window.Clear(colornames.Skyblue)
 
-	objects := []world.Object{}
+	objects := make([]world.Object, 0)
 	objects = append(objects, world.PossibleObjects[world.ObjectSimpleType]())
 
 	var err error

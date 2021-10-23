@@ -2,7 +2,7 @@ package world
 
 import "time"
 
-var DefaultConfig = WorldConfig{
+var DefaultConfig = Config{
 	Name:         "defualt0",
 	TickInterval: time.Second,
 }

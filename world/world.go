@@ -27,6 +27,7 @@ type World struct {
 	name    string
 	config  WorldConfig
 	objects []Object
+	age     int
 }
 
 // NewWorld creates a new world with the provided config and initial objects
@@ -45,12 +46,29 @@ func (w *World) String() string {
 
 	fmt.Fprintf(b, "Name: %s\n", w.name)
 	fmt.Fprintf(b, "Population: %d\n", w.NumObjects())
+	fmt.Fprintf(b, "Age: %d\n", w.age)
+
+	fmt.Fprintln(b, "Objects:")
+	for _, o := range w.objects {
+		fmt.Fprintf(b, "  [%s] %s (%d)\n", o.Type(), o.Name(), o.Age(w.age))
+	}
 
 	return b.String()
 }
 
+// NumObjects returns the number of objects in the world
 func (w *World) NumObjects() int {
 	return len(w.objects)
+}
+
+// SpawnObject spawns a new object
+func (w *World) SpawnObject() {
+
+}
+
+// RandomEvents runs random events
+func (w *World) RandomEvents() {
+
 }
 
 func (w *World) Run(status chan string, done chan bool) {
@@ -74,6 +92,6 @@ func (w *World) Run(status chan string, done chan bool) {
 
 // Update runs every w.config.TickInterval
 func (w *World) Update() {
-
 	log.Println("tick")
+	w.age++
 }

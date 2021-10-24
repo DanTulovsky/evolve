@@ -8,20 +8,6 @@ import (
 	"time"
 )
 
-type Config struct {
-	Name         string
-	TickInterval time.Duration
-}
-
-func (wc Config) String() string {
-	var b = new(strings.Builder)
-	fmt.Fprintln(b, "Config:")
-	fmt.Fprintf(b, "  Name: %v\n", wc.Name)
-	fmt.Fprintf(b, "  TickInterval: %v\n", wc.TickInterval)
-
-	return b.String()
-}
-
 // World is our world
 type World struct {
 	name    string
@@ -45,29 +31,61 @@ func (w *World) String() string {
 	var b = new(strings.Builder)
 
 	fmt.Fprintf(b, "Name: %s\n", w.name)
-	fmt.Fprintf(b, "Population: %d\n", w.NumObjects())
+	fmt.Fprintf(b, "Population: %d (alive: %d; dead: %d)\n", w.numObjects(), w.numLiveObjects(), w.numDeadObjects())
 	fmt.Fprintf(b, "Age: %d\n", w.age)
 
-	fmt.Fprintln(b, "Objects:")
-	for _, o := range w.objects {
-		fmt.Fprintf(b, "  [%s] %s (%d)\n", o.Type(), o.Name(), o.Age(w.age))
+	fmt.Fprintln(b, "Live Objects:")
+	for _, o := range w.liveObjects() {
+		fmt.Fprintf(b, "  [%s] %s (%d)\n", o.Type(), o.Name(), o.Age())
 	}
 
 	return b.String()
 }
 
-// NumObjects returns the number of objects in the world
-func (w *World) NumObjects() int {
+func (w *World) liveObjects() []Object {
+	var os []Object
+	for _, o := range w.objects {
+		if o.IsAlive() {
+			os = append(os, o)
+		}
+	}
+	return os
+}
+
+// numDeadObjects returns the number of dead objects in the world
+func (w *World) numDeadObjects() int {
+	return len(w.objects) - len(w.liveObjects())
+}
+
+// numObjects returns the number of objects in the world
+func (w *World) numObjects() int {
 	return len(w.objects)
 }
 
-// SpawnObject spawns a new object
-func (w *World) SpawnObject() {
-
+// numLiveObjects returns the number of live objects in the world
+func (w *World) numLiveObjects() int {
+	return len(w.liveObjects())
 }
 
-// RandomEvents runs random events
-func (w *World) RandomEvents() {
+// spawnObject spawns a new object
+func (w *World) spawnObject(o ObjectType) {
+	var n Object
+
+	switch o {
+	case ObjectSimpleType:
+		n = newObjectSimple(w.age)
+	}
+
+	w.objects = append(w.objects, n)
+}
+
+// randomEvents runs random events
+func (w *World) randomEvents() {
+	// every 10 ticks, spawn a new simpleObject
+	if w.age%10 == 0 && w.numObjects() < w.config.MaxObjects {
+		log.Println("Spawning new ObjectSimple...")
+		w.spawnObject(ObjectSimpleType)
+	}
 
 }
 
@@ -80,7 +98,7 @@ func (w *World) Run(status chan string, done chan bool) {
 			log.Println("World ending...")
 			ticker.Stop()
 		case <-ticker.C:
-			w.Update()
+			w.update()
 		default:
 			select {
 			case status <- w.String():
@@ -90,8 +108,18 @@ func (w *World) Run(status chan string, done chan bool) {
 	}
 }
 
-// Update runs every w.config.TickInterval
-func (w *World) Update() {
-	log.Println("tick")
+// update runs every w.config.TickInterval
+func (w *World) update() {
 	w.age++
+
+	log.Println("tick")
+
+	// Object actions
+	for _, o := range w.objects {
+		o.Update(w.age)
+	}
+
+	// random world events
+	w.randomEvents()
+
 }

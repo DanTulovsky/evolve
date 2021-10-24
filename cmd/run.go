@@ -43,7 +43,7 @@ func initText() {
 	fpsText.Color = colornames.Antiquewhite
 
 	worldAtlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
-	worldText = text.New(pixel.V(window.Bounds().W()-200, window.Bounds().H()-20), worldAtlas)
+	worldText = text.New(pixel.V(window.Bounds().W()-300, window.Bounds().H()-20), worldAtlas)
 	worldText.Color = colornames.Black
 }
 
@@ -87,15 +87,21 @@ func run() {
 	window.Clear(colornames.Skyblue)
 
 	objects := make([]world.Object, 0)
-	objects = append(objects, world.PossibleObjects[world.ObjectSimpleType]())
+	objects = append(objects, world.PossibleObjects[world.ObjectSimpleType](0))
 
 	var err error
+	wc := world.DefaultConfig
+	wc.Name = "evolve0"
 	w, err = world.NewWorld(world.DefaultConfig, objects)
 	if err != nil {
 		log.Fatalf("initializing world: %v", err)
 	}
+
+	// Send true to this channel to make the world end
 	doneCh := make(chan bool)
+	// The world sens its current status to this thread for display over this channel
 	statusCh := make(chan string, 1)
+	// Start the world thread
 	go w.Run(statusCh, doneCh)
 
 	last := time.Now()
@@ -108,7 +114,7 @@ func run() {
 
 		fps = float64(frames) / last.Sub(start).Seconds()
 
-		// get latest statusCh from the world
+		// get latest status from the world if sent
 		select {
 		case s := <-statusCh:
 			worldStatus = s

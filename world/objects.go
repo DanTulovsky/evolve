@@ -2,10 +2,12 @@ package world
 
 // Object is an object that can populate the world
 type Object interface {
-	Age(nowTick int) int
+	Age() int
+	IsAlive() bool
+	IsDead() bool
 	Name() string
 	Type() string
-	Update()
+	Update(nowTick int)
 }
 
 type ObjectType int
@@ -21,6 +23,6 @@ var (
 )
 
 // PossibleObjects is a map from object type to the creation function
-var PossibleObjects = map[ObjectType]func() Object{
+var PossibleObjects = map[ObjectType]func(int) Object{
 	ObjectSimpleType: newObjectSimple,
 }
